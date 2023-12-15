@@ -1,7 +1,9 @@
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using VirtualPetCare.API.Extensions;
+using VirtualPetCare.API.Filters;
 using VirtualPetCare.API.Middlewares;
 using VirtualPetCare.Repository.Context;
 using VirtualPetCare.Service.Mapping;
@@ -11,11 +13,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers().AddFluentValidation(x => x.RegisterValidatorsFromAssemblyContaining<UserCreatDtoValidation>());
+builder.Services.AddControllers(options => options.Filters.Add(new ValidateFilterAttribute())).AddFluentValidation(x => x.RegisterValidatorsFromAssemblyContaining<UserCreatDtoValidation>());
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSql"));
     
+});
+
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.SuppressModelStateInvalidFilter = true;
+
 });
 
 builder.Services.AddScopedWithExtension();
