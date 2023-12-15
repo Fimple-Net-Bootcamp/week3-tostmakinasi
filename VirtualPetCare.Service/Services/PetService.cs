@@ -63,8 +63,9 @@ namespace VirtualPetCare.Service.Services
 
             await _repository.AddAsync(newPet);
             await _unitOfWork.TransactionCommitAsync();
+            var petDto = _mapper.Map<PetDto>(newPet);
 
-            return await GetByIdAsync(newPet.Id);
+            return petDto ;
         }
 
         /// <inheritdoc/>
@@ -96,12 +97,42 @@ namespace VirtualPetCare.Service.Services
         /// <inheritdoc/>
         public async Task<IEnumerable<PetListDto>> GetByOwnerIdAsync(int ownerId)
         {
-            var pets = await _repository.Where(x => x.OwnerId == ownerId).ToListAsync();
+            var pets = await _repository.Where(x => x.OwnerId == ownerId).Include(x=> x.PetSpecies).ToListAsync();
 
             if (!pets.Any())
                 throw new NotFoundException("Pets not found.");
             var petDtos = _mapper.Map<IEnumerable<PetListDto>>(pets);
             return petDtos;
+        }
+
+        public async Task RemoveWithRelations(int id)
+        {
+           
+            var pet = await _repository.GetAll().Include(x=> x.Health).Include(x=> x.FoodHistories).Include(x=> x.ActivityHistories).FirstOrDefaultAsync(x=> x.Id == id);
+            if (pet == null)
+                throw new NotFoundException($"Pet({id}) not found.");
+
+            pet.IsActive = false;
+            pet.UpdatedDate = DateTime.UtcNow;
+            pet.Health.IsActive = false;
+            pet.Health.UpdatedDate = DateTime.UtcNow;
+            pet.FoodHistories.ForEach(x =>
+            {
+                x.IsActive = false;
+                x.UpdatedDate = DateTime.UtcNow;
+
+            });
+
+            pet.ActivityHistories.ForEach(x =>
+            {
+                x.IsActive = false;
+                x.UpdatedDate = DateTime.UtcNow;
+
+            });
+
+            await _unitOfWork.CommitChangesAsync();
+
+
         }
 
         /// <inheritdoc/>

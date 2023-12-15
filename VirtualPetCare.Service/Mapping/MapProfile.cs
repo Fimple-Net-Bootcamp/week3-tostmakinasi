@@ -31,7 +31,8 @@ namespace VirtualPetCare.Service.Mapping
 
             CreateMap<Pet, PetUserDetailDto>()
                 .ForMember(x => x.Age, opt => opt.MapFrom(src => CalculateAge(src.CreatedDate)))
-                .ForMember(x => x.HealtStatus, opt => opt.MapFrom(src => src.Health.Status));
+                .ForMember(x => x.HealtStatus, opt => opt.MapFrom(src => src.Health.Status))
+                .ForMember(x => x.PetId, opt => opt.MapFrom(src => src.Id));
 
             CreateMap<Pet,PetDto>()
                 .ForMember(x => x.Age, opt => opt.MapFrom(src => CalculateAge(src.CreatedDate)))

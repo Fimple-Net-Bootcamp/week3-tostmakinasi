@@ -20,12 +20,14 @@ namespace VirtualPetCare.Service.Services
         private readonly IUserRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IPetService _petService;
 
-        public UserService(IUnitOfWork unitOfWork, IUserRepository repository, IMapper mapper)
+        public UserService(IUnitOfWork unitOfWork, IUserRepository repository, IMapper mapper, IPetService petService)
         {
             _unitOfWork = unitOfWork;
             _repository = repository;
             _mapper = mapper;
+            _petService = petService;
         }
 
         /// <inheritdoc/>
@@ -71,15 +73,21 @@ namespace VirtualPetCare.Service.Services
         /// <inheritdoc/>
         public async Task RemoveAsync(int id)
         {
-            var user = await _repository.GetByIdAsync(id);
+            await _unitOfWork.BeginTransactionAsync();
+
+            var user = await _repository.GetAll().Include(x=> x.Pets).FirstOrDefaultAsync(x=> x.Id == id);
 
             if (user == null)
                 throw new NotFoundException($"User({id}) not found.");
 
             user.IsActive = false;
             user.UpdatedDate = DateTime.UtcNow;
+            user.Pets.ForEach(async x =>
+            {
+                await _petService.RemoveWithRelations(x.Id);
+            });
 
-            await _unitOfWork.CommitChangesAsync();
+            await _unitOfWork.TransactionCommitAsync();
         }
 
         /// <inheritdoc/>
