@@ -32,7 +32,7 @@ namespace VirtualPetCare.Repository.Repositories
 
         public IQueryable<T> GetAll()
         {
-            return _dbSet.AsNoTracking().AsQueryable();
+            return _dbSet.AsQueryable();
         }
 
         public IQueryable<T> Where(Expression<Func<T, bool>> expression)

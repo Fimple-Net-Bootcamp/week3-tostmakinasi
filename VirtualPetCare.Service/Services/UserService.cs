@@ -75,17 +75,45 @@ namespace VirtualPetCare.Service.Services
         {
             await _unitOfWork.BeginTransactionAsync();
 
-            var user = await _repository.GetAll().Include(x=> x.Pets).FirstOrDefaultAsync(x=> x.Id == id);
+            var user = await _repository.GetAll()
+                .Include(x => x.Pets).ThenInclude(x => x.Health)
+                .Include(x => x.Pets).ThenInclude(p => p.FoodHistories)
+                .Include(u => u.Pets).ThenInclude(p => p.ActivityHistories)
+                .FirstOrDefaultAsync(x => x.Id == id);
 
             if (user == null)
                 throw new NotFoundException($"User({id}) not found.");
 
             user.IsActive = false;
             user.UpdatedDate = DateTime.UtcNow;
-            user.Pets.ForEach(async x =>
+
+            await _unitOfWork.CommitChangesAsync();
+
+            foreach (var pet in user.Pets)
             {
-                await _petService.RemoveWithRelations(x.Id);
-            });
+                pet.IsActive = false;
+                pet.UpdatedDate = DateTime.UtcNow;
+                pet.Health.IsActive = false;
+                pet.Health.UpdatedDate = DateTime.UtcNow;
+
+
+                await _unitOfWork.CommitChangesAsync();
+
+                foreach (var foodHistory in pet.FoodHistories)
+                {
+                    foodHistory.IsActive = false;
+                    foodHistory.UpdatedDate = DateTime.UtcNow;
+                }
+
+                foreach (var activityHistory in pet.ActivityHistories)
+                {
+                    activityHistory.IsActive = false;
+                    activityHistory.UpdatedDate = DateTime.UtcNow;
+                }
+            }
+
+
+            await _unitOfWork.CommitChangesAsync();
 
             await _unitOfWork.TransactionCommitAsync();
         }

@@ -43,8 +43,6 @@ namespace VirtualPetCare.Core.Services
         /// </summary>
         /// <param name="ownerId">ID of the owner whose pets are to be retrieved.</param>
         Task<IEnumerable<PetListDto>> GetByOwnerIdAsync(int ownerId);
-
-        Task RemoveWithRelations(int id);
     }
 
 }

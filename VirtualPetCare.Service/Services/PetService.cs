@@ -105,36 +105,6 @@ namespace VirtualPetCare.Service.Services
             return petDtos;
         }
 
-        public async Task RemoveWithRelations(int id)
-        {
-           
-            var pet = await _repository.GetAll().Include(x=> x.Health).Include(x=> x.FoodHistories).Include(x=> x.ActivityHistories).FirstOrDefaultAsync(x=> x.Id == id);
-            if (pet == null)
-                throw new NotFoundException($"Pet({id}) not found.");
-
-            pet.IsActive = false;
-            pet.UpdatedDate = DateTime.UtcNow;
-            pet.Health.IsActive = false;
-            pet.Health.UpdatedDate = DateTime.UtcNow;
-            pet.FoodHistories.ForEach(x =>
-            {
-                x.IsActive = false;
-                x.UpdatedDate = DateTime.UtcNow;
-
-            });
-
-            pet.ActivityHistories.ForEach(x =>
-            {
-                x.IsActive = false;
-                x.UpdatedDate = DateTime.UtcNow;
-
-            });
-
-            await _unitOfWork.CommitChangesAsync();
-
-
-        }
-
         /// <inheritdoc/>
         public async Task UpdateAsync(int id, PetUpdateDto entity)
         {
