@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
+using System.Net;
 using System.Text.Json;
 using VirtualPetCare.Service.Exceptions;
 
@@ -18,12 +19,12 @@ namespace VirtualPetCare.API.Middlewares
 
                     var statusCode = exceptionHandler.Error switch
                     {
-                        ClientSideException => 400,
-                        NotFoundException => 404,
-                        _ => 500
+                        ClientSideException => HttpStatusCode.BadRequest,
+                        NotFoundException => HttpStatusCode.NotFound,
+                        _ => HttpStatusCode.InternalServerError
                     };
 
-                    context.Response.StatusCode = statusCode;
+                    context.Response.StatusCode = (int)statusCode;
 
                     var response = exceptionHandler.Error.Message;
 
