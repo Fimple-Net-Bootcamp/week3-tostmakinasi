@@ -28,7 +28,7 @@ namespace VirtualPetCare.API.Middlewares
 
                     var response = exceptionHandler.Error.Message;
 
-                    await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+                    await context.Response.WriteAsJsonAsync(response);
 
                 });
             });

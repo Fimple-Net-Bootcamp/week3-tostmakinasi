@@ -9,7 +9,7 @@ namespace VirtualPetCare.API.Extensions
 {
     public static class StartupExtensions
     {
-        public static void AddScopedWithExtension(this IServiceCollection services)
+        public static IServiceCollection AddScopedWithExtension(this IServiceCollection services)
         {
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -22,7 +22,7 @@ namespace VirtualPetCare.API.Extensions
             services.AddScoped<IActivityService, ActivityService>();
             services.AddScoped<IFoodService, FoodService>();
 
-
+            return services;
         }
     }
 }
